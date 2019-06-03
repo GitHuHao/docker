@@ -355,4 +355,63 @@ docker ps -q
 
 # 关闭所有正在运行容器
 docker stop $(docker ps -q)
+
 ```
+### DockerFile语法
+#### 示例
+```
+vim /usr/tmp/dockerfile/DockerFile_mysql
+# ----------------------------------------------------
+# # 基于centos7 自动构建 tomcat (注释行)
+# # 基础镜像来源
+FROM centos:7.5
+# # 维护人
+MAINTAINER xx<xx@xx.com>
+# # 声明DockerFile环境变量
+ENV BASE /opt/software
+ENV CATALINA_HOME $BASE/apache-tomcat-9.0.20
+# # 挂载容器目录，相当于新建目录
+VOLUME ["/opt/software"]
+# # 执行命令
+RUN yum install java-1.8.0-openjdk-devel.x86_64
+# # 拷贝并解压宿主机压缩文件到指定容器路径
+ADD /usr/tmp/download/apache-tomcat-9.0.20.tar.gz $BASE
+
+# # 宿主机/usr/tmp/ReadMe.txt，拷贝到容器/opt/software下
+
+RUN echo 'export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-8.b10.el6_9.x86_64' >> /etc/profile
+RUN echo 'export CLASSPATH=.:$JAVA_HOME/jre/lib/rt.jar:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar' >> /etc/profile
+RUN echo "export CATALINA_HOME=$BASE/apache-tomcat-9.0.20" >> /etc/profile
+RUN echo "export CATALINA_BASE=$CATALINA_HOME" >> /etc/profile
+RUN echo "export CATALINA_TMPDIR=$CATALINA_HOME/temp" >> /etc/profile
+RUN echo 'export PATH=$PATH:$JAVA_HOME/bin:$CATALINA_BASE/bin' >> /etc/profile
+
+# # 删除原生配置
+RUN rm -rf $CATALINA_HOME/conf/server.xml
+RUN rm -rf $CATALINA_HOME/conf/tomcat-users.xml
+
+# # 拷贝自定义文件到容器
+COPY server.xml $CATALINA_HOME/conf
+COPY tomcat-users.xml $CATALINA_HOME/conf
+
+# # 声明容器暴露端口 (-P 启动时随机映射， 8080 web端口, 8000 jpda 远程调试端口)
+EXPOSE 8080
+EXPOSE 8000
+
+CMD ['catalina.sh','run']
+ENTRYPOINT ['catalina.sh','run']
+# # 
+ADD 
+
+# ----------------------------------------------------
+```
+eg:
+
+FROM
+
+
+
+
+
+
+
