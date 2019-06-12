@@ -691,6 +691,33 @@ docker push registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat:9.1
 
 # 从远程仓库拉取
 docker pull registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat:9.1
+
+# ENTRYPOINT 启动参数替换
+vim DockerFile_entrypoint
+# ----------------------------------------------------
+FROM centos:6.8
+
+RUN yum install -y curl 
+
+ENTRYPOINT ["curl","-s","ifconfig.me"]
+# ----------------------------------------------------
+
+docker build -f DockerFile_entrypoint -t curl_test/centos6.8:1.0 .
+
+# 等效于 curl -s ifconfig.me
+docker run -t curl_test/centos6.8:1.0 
+# 202.66.35.243
+
+# 等效于 curl -i ifconfig.me (-i 只显示请求头)
+docker run -t curl_test/centos6.8:1.0 -i
+# HTTP/1.1 200 OK
+# Date: Wed, 12 Jun 2019 09:58:00 GMT
+# Content-Type: text/plain; charset=utf-8
+# Content-Length: 13
+# Access-Control-Allow-Origin: *
+# X-Frame-Options: DENY
+# Via: 1.1 google
+
 ```
 
 
