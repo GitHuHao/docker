@@ -1,5 +1,5 @@
 ### 关键词
-LXC Docker架构 仓库注册服务器 仓库 镜像 容器 UnionFS bootfs rootfs
+LXC Docker架构 仓库注册服务器 仓库 镜像 容器 UnionFS bootfs rootfs registry repo image container DockFile tomact
 ## 为什么轻？
 ![LXC原理](https://upload-images.jianshu.io/upload_images/5344773-022c56b9a1df1f5e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 1. 去掉了传统VM架构中Hypervisor(硬件资源虚拟化)这一层，Docker Engine 直接对宿主系统进行库调用，不关心具体硬件实现;
@@ -360,109 +360,304 @@ docker stop $(docker ps -q)
 ### DockerFile语法
 #### 示例
 ```
-vim /usr/tmp/dockerfile/DockerFile_tomcat_base
+vim /usr/tmp/dockerfile/DockerFile_jdk_base
 # ----------------------------------------------------
-# 基于centos7 自动构建 tomcat (注释行)
-# 基础镜像来源
-FROM centos:7.5
+# 基础镜像来源 centos6.8 java-1.8.0-openjdk-devel.x86_64
+FROM centos:6.8
 
 # 维护人
 MAINTAINER xx<xx@xx.com>
 
-# 挂载容器目录，相当于新建目录
-VOLUME ["/opt/software"]
+# 可以在docker build 阶段被 --build-arg 覆盖，构建时与ENV一致，运行时只有ENV可以转换为环境
+ARG SOFT=/opt/software
 
-# 声明DockerFile环境变量
-ENV BASE /opt/software
-ENV CATALINA_HOME $BASE/apache-tomcat-9.0.20
+# 声明环境变量，
+ENV BASE $SOFT
 
-# 声明工作目录
-WORKDIR $BASE
+# 创建目录
+VOLUME [$SOFT]
 
 # 执行命令
-RUN yum install java-1.8.0-openjdk-devel.x86_64
+# RUN yum install -y java-1.8.0-openjdk-devel.x86_64
+ADD jdk-8u141-linux-x64.tar.gz $BASE 
 
-# 拷贝并解压宿主机压缩文件到指定容器路径
-ADD /usr/tmp/download/apache-tomcat-9.0.20.tar.gz $BASE
-
-# 添加环境变量
-RUN echo 'export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-8.b10.el6_9.x86_64' >> /etc/profile
-RUN echo 'export CLASSPATH=.:$JAVA_HOME/jre/lib/rt.jar:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar' >> /etc/profile
-RUN echo "export CATALINA_HOME=$BASE/apache-tomcat-9.0.20" >> /etc/profile
-RUN echo "export CATALINA_BASE=$CATALINA_HOME" >> /etc/profile
-RUN echo "export CATALINA_TMPDIR=$CATALINA_HOME/temp" >> /etc/profile
-RUN echo 'export PATH=$PATH:$JAVA_HOME/bin:$CATALINA_BASE/bin' >> /etc/profile
-
-# 删除原生配置
-RUN rm -rf $CATALINA_HOME/conf/server.xml
-RUN rm -rf $CATALINA_HOME/conf/tomcat-users.xml
-
-# 拷贝自定义文件到容器
-ONBUILD COPY server.xml $CATALINA_HOME/conf
-ONBUILD COPY tomcat-users.xml $CATALINA_HOME/conf
-
-# 声明容器暴露端口 (-P 启动时随机映射， 8080 web端口, 8000 jpda 远程调试端口)
-EXPOSE 8080 8000
-
-# 两种默认启动方式二选一，CMD可被启动命令覆盖，ENTRYPOINT接受启动传参
-# CMD ['catalina.sh','run']
-ENTRYPOINT ['catalina.sh','run']
+# 作为子类被引用时，才会构建，需要引用ENV，而不是ARG
+ONBUILD ENV JAVA_HOME $BASE/jdk1.8.0_141
+ONBUILD ENV CLASSPATH .:$JAVA_HOME/jre/lib/rt.jar:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+ONBUILD ENV PATH $PATH:$JAVA_HOME/bin
 
 # END
 # ----------------------------------------------------
 
-
+# 构建带jdk基础镜像
+docker build -f DockerFile_jdk_base -t jdk/centos6.8:1.8 .
+Sending build context to Docker daemon  196.4MB
+Step 1/9 : FROM centos:6.8
+ ---> 82f3b5f3c58f
+Step 2/9 : MAINTAINER xx<xx@xx.com>
+ ---> Running in 30d590e4f0ae
+Removing intermediate container 30d590e4f0ae
+ ---> 4ca10c4bfcbe
+Step 3/9 : ARG SOFT=/opt/software
+ ---> Running in 7df4c86e95ff
+Removing intermediate container 7df4c86e95ff
+ ---> df7b1d2a36f2
+Step 4/9 : ENV BASE $SOFT
+ ---> Running in b6ee40626fc0
+Removing intermediate container b6ee40626fc0
+ ---> 7e6e5779631e
+Step 5/9 : VOLUME [$SOFT]
+ ---> Running in 6c3bc11a72ea
+Removing intermediate container 6c3bc11a72ea
+ ---> 6a6d801fec11
+Step 6/9 : ADD jdk-8u141-linux-x64.tar.gz $BASE
+ ---> d66d86e17e88
+Step 7/9 : ONBUILD ENV JAVA_HOME $BASE/jdk1.8.0_141
+ ---> Running in f1250da248be
+Removing intermediate container f1250da248be
+ ---> ddf0fee19b28
+Step 8/9 : ONBUILD ENV CLASSPATH .:$JAVA_HOME/jre/lib/rt.jar:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+ ---> Running in 17cde3c07573
+Removing intermediate container 17cde3c07573
+ ---> 440385088d3d
+Step 9/9 : ONBUILD ENV PATH $PATH:$JAVA_HOME/bin
+ ---> Running in c5955c31bf3c
+Removing intermediate container c5955c31bf3c
+ ---> ed0710291179
+Successfully built ed0710291179
+Successfully tagged jdk/centos6.8:1.8
 vim /usr/tmp/dockerfile/DockerFile_tomcat_enhanced
+
+# 配置可远程访问管理的tomcat
+vim server.xml
 # ----------------------------------------------------
-# 基于centos7 自动构建 tomcat (注释行)
-# 基础镜像来源
-FROM centos:7.5
+   <Connector port="8080" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443"
+               URIEncoding="UTF-8" />
+<!-- 修改默认编码-->
+# ----------------------------------------------------
+
+# 基于角色授权
+vim tomcat-users.xml 
+# ----------------------------------------------------
+<role rolename="manager-gui"/>
+<role rolename="manager-script"/>
+<role rolename="manager-jmx"/>
+<role rolename="manager-status"/>
+<role rolename="admin-gui"/>
+<role rolename="admin-script"/>
+<user username="tomcat" password="tomcat" roles="manager-gui,manager-script,manager-jmx,manager-status,admin-gui,admin-script"/>
+# ----------------------------------------------------
+
+# 注释掉访问IP限制
+vim context.xml 
+# ----------------------------------------------------
+<Context antiResourceLocking="false" privileged="true" >
+  <!--
+  <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+         allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" />
+  -->
+  <Manager sessionAttributeValueClassNameFilter="java\.lang\.(?:Boolean|Integer|Long|Number|String)|org\.apache\.catalina\.filters\.CsrfPreventionFilter\$LruCache(?:\$1)?|java\.util\.(?:Linked)?HashMap"/>
+</Context>
+# ----------------------------------------------------
+
+# 添加jsp
+# vim /opt/docker_house/tomcat9.0/test/hello.jsp
+# ----------------------------------------------------
+<%@ page contentType="text/html;charset=UTF-8" language="java"%>
+
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>why are you not working</title>
+<meta charset="utf-8" />
+</head>
+
+   <body>
+      <h1>hello</h1>
+       <%
+            System.out.println("hello");
+       %>
+   </body>
+</html>
+# ----------------------------------------------------
+
+
+vim DockerFile_tomcat
+# ----------------------------------------------------
+# centos6.8 jdk1.8.0 + apache-tomcat-9.0.20(enhanced)
+# 继承
+FROM jdk/centos6.8:1.8
 
 # 维护人
 MAINTAINER xx<xx@xx.com>
 
+# docker build -d xx -t xx:yy --build-arg BASE=/opt/software 构建参数(此处为安装路径)
+# 此处赋予默认值(也可以不赋值)
+ARG BASE=/opt/software
+
 # 挂载容器目录，相当于新建目录
-VOLUME ["/opt/software"]
-
-# 声明DockerFile环境变量
-ENV BASE /opt/software
-ENV CATALINA_HOME $BASE/apache-tomcat-9.0.20
-
-# 声明工作目录
-WORKDIR $BASE
-
-# 执行命令
-RUN yum install java-1.8.0-openjdk-devel.x86_64
+VOLUME [$BASE]
 
 # 拷贝并解压宿主机压缩文件到指定容器路径
-ADD /usr/tmp/download/apache-tomcat-9.0.20.tar.gz $BASE
+ADD apache-tomcat-9.0.20.tar.gz $BASE
 
-# 添加环境变量
-RUN echo 'export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-8.b10.el6_9.x86_64' >> /etc/profile
-RUN echo 'export CLASSPATH=.:$JAVA_HOME/jre/lib/rt.jar:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar' >> /etc/profile
-RUN echo "export CATALINA_HOME=$BASE/apache-tomcat-9.0.20" >> /etc/profile
-RUN echo "export CATALINA_BASE=$CATALINA_HOME" >> /etc/profile
-RUN echo "export CATALINA_TMPDIR=$CATALINA_HOME/temp" >> /etc/profile
-RUN echo 'export PATH=$PATH:$JAVA_HOME/bin:$CATALINA_BASE/bin' >> /etc/profile
+# 声明DockerFile环境变量
+ENV CATALINA_HOME $BASE/apache-tomcat-9.0.20
+ENV CATALINA_BASE $CATALINA_HOME
+ENV CATALINA_TMPDIR $CATALINA_HOME/temp
+ENV PATH $PATH:$CATALINA_HOME/bin
 
-# 删除原生配置
+# 删除原生配置（以下是替换策略，还可以使用 -v 添加数据卷方式，动态从宿主机映射配置文件到容器）
 RUN rm -rf $CATALINA_HOME/conf/server.xml
+RUN rm -rf $CATALINA_HOME/webapps/manager/META-INF/context.xml
 RUN rm -rf $CATALINA_HOME/conf/tomcat-users.xml
 
-# 拷贝自定义文件到容器
-ONBUILD COPY server.xml $CATALINA_HOME/conf
-ONBUILD COPY tomcat-users.xml $CATALINA_HOME/conf
+# 纯拷贝文件，绝对路径代表镜像内部路径，相对路径代表当前(宿主机)构建路径
+# utf-8 乱码
+COPY ./server.xml $CATALINA_HOME/conf
+# 权限
+COPY ./tomcat-users.xml $CATALINA_HOME/conf
+# 远程访问ip限制
+COPY ./context.xml  $CATALINA_HOME/webapps/manager/META-INF/
+
+# 声明工作目录
+WORKDIR $CATALINA_HOME
 
 # 声明容器暴露端口 (-P 启动时随机映射， 8080 web端口, 8000 jpda 远程调试端口)
 EXPOSE 8080 8000
 
 # 两种默认启动方式二选一，CMD可被启动命令覆盖，ENTRYPOINT接受启动传参
-# CMD ['catalina.sh','run']
-ENTRYPOINT ['catalina.sh','run']
+ENTRYPOINT $CATALINA_HOME/bin/catalina.sh run
+# CMD $CATALINA_HOME/bin/catalina.sh run && tail -F $CATALINA_HOME/logs/catalina.out
 
 # END
 # ----------------------------------------------------
 
+ docker images
+REPOSITORY                                                   TAG                 IMAGE ID            CREATED             SIZE
+jdk/centos6.8                                                1.8                 ed0710291179        3 minutes ago       571MB
+
+# 构建tomcat镜像
+docker build -f DockerFile_tomcat -t tomcat/centos6.8_jdk1.8:9.0 . 
+Sending build context to Docker daemon  196.4MB
+Step 1/18 : FROM jdk/centos6.8:1.8
+# Executing 3 build triggers  《《《《 ONBUILD
+ ---> Running in aef51e50ae84
+Removing intermediate container aef51e50ae84
+ ---> Running in 7a7b1906bf42
+Removing intermediate container 7a7b1906bf42
+ ---> Running in 5f7bafdbed25
+Removing intermediate container 5f7bafdbed25
+ ---> e937abb3548b
+Step 2/18 : MAINTAINER xx<xx@xx.com>
+ ---> Running in 1a222aea98c7
+Removing intermediate container 1a222aea98c7
+ ---> 8c25ea47c074
+Step 3/18 : ARG BASE=/opt/software
+ ---> Running in d11c760bf803
+Removing intermediate container d11c760bf803
+ ---> dd3e94b14a9f
+Step 4/18 : VOLUME [$BASE]
+ ---> Running in 246cf38c70f9
+Removing intermediate container 246cf38c70f9
+ ---> 0e1dd4fb9bf4
+Step 5/18 : ADD apache-tomcat-9.0.20.tar.gz $BASE
+ ---> e8e8bfc9ea6b
+Step 6/18 : ENV CATALINA_HOME $BASE/apache-tomcat-9.0.20
+ ---> Running in ef7e2d1ecf39
+Removing intermediate container ef7e2d1ecf39
+ ---> 34f7c45bddfb
+Step 7/18 : ENV CATALINA_BASE $CATALINA_HOME
+ ---> Running in 8d14e2004d00
+Removing intermediate container 8d14e2004d00
+ ---> f1a21e8a4659
+Step 8/18 : ENV CATALINA_TMPDIR $CATALINA_HOME/temp
+ ---> Running in 754085cb3755
+Removing intermediate container 754085cb3755
+ ---> a47e6dac4987
+Step 9/18 : ENV PATH $PATH:$CATALINA_HOME/bin
+ ---> Running in 2205784c95f3
+Removing intermediate container 2205784c95f3
+ ---> ed2a20445b00
+Step 10/18 : RUN rm -rf $CATALINA_HOME/conf/server.xml
+ ---> Running in 75f19c512bd2
+Removing intermediate container 75f19c512bd2
+ ---> 9f07131f1f8f
+Step 11/18 : RUN rm -rf $CATALINA_HOME/webapps/manager/META-INF/context.xml
+ ---> Running in a00638b3fa19
+Removing intermediate container a00638b3fa19
+ ---> 878eaf80dbbc
+Step 12/18 : RUN rm -rf $CATALINA_HOME/conf/tomcat-users.xml
+ ---> Running in cdf421b5a2d5
+Removing intermediate container cdf421b5a2d5
+ ---> 4be8ec1e835e
+Step 13/18 : COPY ./server.xml $CATALINA_HOME/conf
+ ---> 931e76498b14
+Step 14/18 : COPY ./tomcat-users.xml $CATALINA_HOME/conf
+ ---> 0a169c3155e7
+Step 15/18 : COPY ./context.xml  $CATALINA_HOME/webapps/manager/META-INF/
+ ---> d704b5269238
+Step 16/18 : WORKDIR $CATALINA_HOME
+ ---> Running in efe8e65ca7a1
+Removing intermediate container efe8e65ca7a1
+ ---> bedc960a2690
+Step 17/18 : EXPOSE 8080 8000
+ ---> Running in fdd5bb86c840
+Removing intermediate container fdd5bb86c840
+ ---> 531731b08c83
+Step 18/18 : ENTRYPOINT $CATALINA_HOME/bin/catalina.sh run
+ ---> Running in 653cf12510d9
+Removing intermediate container 653cf12510d9
+ ---> 64cd67aeeadc
+Successfully built 64cd67aeeadc
+Successfully tagged tomcat/centos6.8_jdk1.8:9.0
+
+# 查看镜像
+docker images
+REPOSITORY                                                   TAG                 IMAGE ID            CREATED             SIZE
+tomcat/centos6.8_jdk1.8                                      9.0                 64cd67aeeadc        57 seconds ago      586MB
+jdk/centos6.8                                                1.8                 ed0710291179        3 minutes ago       571MB
+
+# 运行容器 （-it交互式伪终端，-d守护式，-p端口映射，-v 路径映射）
+docker run -it -d -p 8080:8080 -p 8000:8000 \
+-v /opt/docker_house/tomcat9.0/logs:/opt/software/apache-tomcat-9.0.20/logs \
+-v /opt/docker_house/tomcat9.0/test:/opt/software/apache-tomcat-9.0.20/webapps/test \
+--name cat tomcat/centos6.8_jdk1.8:9.0 
+
+# 查看正在运行容器
+docker ps
+CONTAINER ID        IMAGE                         COMMAND                  CREATED             STATUS              PORTS                                            NAMES
+dd55a77a31d2        tomcat/centos6.8_jdk1.8:9.0   "/bin/sh -c '$CATALI…"   3 seconds ago       Up 1 second         0.0.0.0:8000->8000/tcp, 0.0.0.0:8080->8080/tcp   cat
+
+# -p -P 端口映射参数，必须开启防火墙
+# 允许开机启动防火墙
+systemctl enable firewalld
+
+# 打开防火墙
+systemctl start firewalld
+
+# 永久开放8080端口
+firewall-cmd --zone=public --add-port=8080/tcp --permanent
+
+#重启防火墙
+firewall-cmd --reload
+
+# 查看全部打开端口
+firewall-cmd --list-all
+ 
+# 查看远程访问
+http://docker:8080/
+
+# 本地通过挂载目录查看日志
+tail -f /opt/docker_house/tomcat9.0/logs/* 
+
+# 查看动态部署
+http://docker:8080/test/hello.jsp
+
+```
 
 
 
