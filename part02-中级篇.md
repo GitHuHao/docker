@@ -657,6 +657,40 @@ tail -f /opt/docker_house/tomcat9.0/logs/*
 # 查看动态部署
 http://docker:8080/test/hello.jsp
 
+# 基于运行容器构建”黑箱镜像(不明确构建过程的镜像)“ (-a 作者，-m提交信息)
+docker commit -a whohow20094702 -m 'tomcat_enhanced' cat tomcat/centos6.8_jdk1.8:9.1
+
+docker images
+REPOSITORY                                                   TAG                 IMAGE ID            CREATED             SIZE
+tomcat/centos6.8_jdk1.8                                      9.1                 2576602400f3 <      6 seconds ago       586MB
+tomcat/centos6.8_jdk1.8                                      9.0                 64cd67aeeadc        3 hours ago         586MB
+jdk/centos6.8                                                1.8                 ed0710291179        3 hours ago         571MB
+
+# 登录注册仓库
+docker login --username=16601040128 registry.cn-hangzhou.aliyuncs.com
+#Password: a..8
+#Login Succeeded
+
+# 打标签
+docker tag 2576602400f3 registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat:9.1
+
+# 远程推送
+docker push registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat:9.1
+# The push refers to repository [registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat]
+# 6fee83e9a456: Pushed 
+# 7530db3afc8c: Pushed 
+# 3f6336fe2b37: Pushed 
+# 04fe25096745: Pushed 
+# c20b415d3cf3: Pushed 
+# c8aec80bb90b: Pushed 
+# 3acad8d0388c: Pushed 
+# ec66544a95eb: Pushed 
+# 0cc8fd615a43: Pushing [=====================================>             ]  280.7MB/376.2MB
+# ad337ac82f03: Mounted from centos7-registry/docker-test 
+9.1: digest: sha256:e16564ced2f986d431316027291a33aede23c591b218ac55cefd81d0edbf8784 size: 2408
+
+# 从远程仓库拉取
+docker pull registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat:9.1
 ```
 
 
