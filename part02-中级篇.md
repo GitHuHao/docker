@@ -63,17 +63,17 @@ Docker的镜像运行时，在bootfs自检完毕之后并不会把rootfs的read-
 #查看指定内容镜像
 docker search centos
 # NAME                               DESCRIPTION                                     STARS               # OFFICIAL            AUTOMATED
-# centos                             The official build of CentOS.                   5387                [# OK]                
+# centos                             The official build of CentOS.                   5387                [# OK]
 # ansible/centos7-ansible            Ansible on Centos7                              # 121                                     [OK]
-# jdeathe/centos-ssh                 CentOS-6 6.10 x86_64 / CentOS-7 7.5.1804 x86…   109     
+# jdeathe/centos-ssh                 CentOS-6 6.10 x86_64 / CentOS-7 7.5.1804 x86…   109
 
 # stars>=100 centos 镜像
-docker search --filter=stars=100 centos  
+docker search --filter=stars=100 centos
 
 # 查看明细
 # docker search --no-trunc centos
 # NAME                               DESCRIPTION                                                                                          STARS               OFFICIAL            AUTOMATED
-# centos                             The official build of CentOS.                                                                        5387                [OK]                
+# centos                             The official build of CentOS.                                                                        5387                [OK]
 # ansible/centos7-ansible            Ansible on Centos7                                                                                   121                                     [OK]
 # jdeathe/centos-ssh                 CentOS-6 6.10 x86_64 / CentOS-7 7.5.1804 x86_64 - SCL/EPEL/IUS Repos / Supervisor / OpenSSH.         109                                     [OK]
 
@@ -86,10 +86,10 @@ docker search --filter=is-automated=true centos
 
 【docker pull】
 # 默认拉取最新镜像
-docker pull centos 
+docker pull centos
 
 # 拉取指定版本镜像
-docker pull centos:6.8 
+docker pull centos:6.8
 # 6.8: Pulling from library/centos
 
 【docker run】
@@ -119,7 +119,7 @@ docker kill mycentos
 
 # 启动并直接进入bash
 docker run -it --name mybash centos:6.8 bash
-# [root@44a2f6008195 /]# 
+# [root@44a2f6008195 /]#
 # exit 退出并关闭容器
 Ctrl+P, Ctrl+Q 退出并在后台运行容器
 
@@ -131,7 +131,7 @@ docker run -it --name mydeamon -d centos:6.8
 # 7a1b7349c81e        centos:6.8          "/bin/bash"         10 seconds ago      Up 9 seconds                            mydeamon
 
 # (-p port1:port2) 启动将容器port2端口映射到宿主机port1端口
-docker run -it -p 8080:8080 -d --name mycat tomcat 
+docker run -it -p 8080:8080 -d --name mycat tomcat
 # docker ps (0.0.0.0:8080->8080/tcp 端口映射成功)
 # CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                    NAMES
 # f76185505e3a        tomcat              "catalina.sh run"   3 seconds ago       Up 2 seconds        0.0.0.0:8080->8080/tcp   mycat
@@ -143,7 +143,7 @@ docker run -it -p 8080:8080 -d --name mycat tomcat
 # curl http://docker:8080/  查看端口映射
 
 # (-P)镜像EXPOSE端口随机映射到宿主机
-docker run -d -it --name mycat2 -P tomcat     
+docker run -d -it --name mycat2 -P tomcat
 # d540c1620ecfa2734aa4ff2eee65e6b7ca58d6711d56cb7e08dde9e4c96b2f21
 # docker ps
 # CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                     NAMES
@@ -154,14 +154,14 @@ mkdir /usr/tmp/test
 cd /usr/tmp/test
 touch 1.txt
 # -v 挂在数据卷
-docker run -it -d -v /usr/tmp/test:/usr/tmp/test --name myvol  centos:6.8 
+docker run -it -d -v /usr/tmp/test:/usr/tmp/test --name myvol  centos:6.8
 
 # 登入容器(查看数据卷映射，读写权限)
-docker attach mycat 
+docker attach mycat
 # [root@4374114e4fd1 /]# ls /usr/tmp/test/
 # 1.txt
-# [root@4374114e4fd1 /]# echo 'hello' >> /usr/tmp/test/1.txt 
-# [root@4374114e4fd1 /]# cat /usr/tmp/test/1.txt 
+# [root@4374114e4fd1 /]# echo 'hello' >> /usr/tmp/test/1.txt
+# [root@4374114e4fd1 /]# cat /usr/tmp/test/1.txt
 # hello
 
 # 查看容器明细
@@ -185,7 +185,7 @@ docker inspect mycat
 docker run -v /usr/tmp/test:/usr/tmp/test:ro -it --name myvol1 centos:6.8 bash
 # [root@7025dbea92a1 /]# ls /usr/tmp/test/
 # 1.txt
-# [root@7025dbea92a1 /]# echo 'hi' >> /usr/tmp/test/1.txt 
+# [root@7025dbea92a1 /]# echo 'hi' >> /usr/tmp/test/1.txt
 # bash: /usr/tmp/test/1.txt: Read-only file system
 
 docker inspect myvol1
@@ -222,12 +222,12 @@ docker search tomcat
 # 查找指定版本镜像
 docker search tomcat:9.0
 # NAME                DESCRIPTION                           STARS               OFFICIAL            AUTOMATED
-# iyayu/tomcat        Java JDK:1.8.0_131 Tomcat:9.0.0.M22   0  
+# iyayu/tomcat        Java JDK:1.8.0_131 Tomcat:9.0.0.M22   0
 
 # 查找评分在100以上镜像
 docker search --filter=stars=100 tomcat
 # NAME                DESCRIPTION                                     STARS               OFFICIAL            AUTOMATED
-# tomcat              Apache Tomcat is an open source implementati…   2410                [OK]  
+# tomcat              Apache Tomcat is an open source implementati…   2410                [OK]
 
 # 查找自动构建镜像
 docker search --filter=is-automated=true tomcat
@@ -248,7 +248,7 @@ docker commit -a 'xx<xxx@xxx.com>' -m 'tomcat:9.0 in centos6.8' d540c1620ecf tom
 # tomcat/centos6.8    v9.0                1da2dff72b71        3 seconds ago       522MB
 
 # 容器提交为本地镜像（忘记打标签）
-docker commit -a 'xx<xx@163.com>' -m 'tomcat:9.0 on centos6.8' d540c1620ecf 
+docker commit -a 'xx<xx@163.com>' -m 'tomcat:9.0 on centos6.8' d540c1620ecf
 # sha256:66797a68a41b951c678f663443dccdf5033122aa2365677abc7cb7114995384c
 
 # 查看全部镜像
@@ -305,20 +305,20 @@ https://cr.console.aliyun.com/cn-hangzhou/instances/repositories
 3. 镜像仓库 > 管理
 ```
  docker login --username=xxx registry.cn-hangzhou.aliyuncs.com
-# Password: 
+# Password:
 # WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
 # Configure a credential helper to remove this warning. See
 # https://docs.docker.com/engine/reference/commandline/login/#credentials-store
-# 
+#
 # Login Succeeded
 
-docker images 
+docker images
 # REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
 # tomact/centos6.8    v9.0                66797a68a41b        37 minutes ago      522MB  << 准备push的镜像
 
 # 标注远程仓库tag
 docker tag  66797a68a41b registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat:v1.0
-# docker images 
+# docker images
 # REPOSITORY                                                   TAG                 IMAGE ID            CREATED             SIZE
 # registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat   v1.0                66797a68a41b        41 minutes ago      522MB
 # tomact/centos6.8                                             v9.0                66797a68a41b        About an hour ago   522MB
@@ -326,11 +326,11 @@ docker tag  66797a68a41b registry.cn-hangzhou.aliyuncs.com/centos68-registry/tom
 # 推送远程仓库
 docker push registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat:v1.0
 # The push refers to repository [registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat]
-# 8ca06e1b99fd: Pushed 
+# 8ca06e1b99fd: Pushed
 # .....
 # 95c8d3f0ae82: Pushing [======================>                            ]  90.71MB/204.8MB
 # a3e9c8cfc64e: Pushed
-# v1.0: digest: sha256:f41aa4f8da6775d8030c70dbd2517bfa7311c0386a2bbdd346ba786b3bbe4fb3 size: 3051 
+# v1.0: digest: sha256:f41aa4f8da6775d8030c70dbd2517bfa7311c0386a2bbdd346ba786b3bbe4fb3 size: 3051
 
 # 删除标签 和 本地镜像
 docker rmi registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat:v1.0 tomact/centos6.8:v9.0
@@ -379,7 +379,7 @@ VOLUME [$SOFT]
 
 # 执行命令
 # RUN yum install -y java-1.8.0-openjdk-devel.x86_64
-ADD jdk-8u141-linux-x64.tar.gz $BASE 
+ADD jdk-8u141-linux-x64.tar.gz $BASE
 
 # 作为子类被引用时，才会构建，需要引用ENV，而不是ARG
 ONBUILD ENV JAVA_HOME $BASE/jdk1.8.0_141
@@ -439,7 +439,7 @@ vim server.xml
 # ----------------------------------------------------
 
 # 基于角色授权
-vim tomcat-users.xml 
+vim tomcat-users.xml
 # ----------------------------------------------------
 <role rolename="manager-gui"/>
 <role rolename="manager-script"/>
@@ -451,7 +451,7 @@ vim tomcat-users.xml
 # ----------------------------------------------------
 
 # 注释掉访问IP限制
-vim context.xml 
+vim context.xml
 # ----------------------------------------------------
 <Context antiResourceLocking="false" privileged="true" >
   <!--
@@ -541,7 +541,7 @@ REPOSITORY                                                   TAG                
 jdk/centos6.8                                                1.8                 ed0710291179        3 minutes ago       571MB
 
 # 构建tomcat镜像
-docker build -f DockerFile_tomcat -t tomcat/centos6.8_jdk1.8:9.0 . 
+docker build -f DockerFile_tomcat -t tomcat/centos6.8_jdk1.8:9.0 .
 Sending build context to Docker daemon  196.4MB
 Step 1/18 : FROM jdk/centos6.8:1.8
 # Executing 3 build triggers  《《《《 ONBUILD
@@ -625,7 +625,7 @@ jdk/centos6.8                                                1.8                
 docker run -it -d -p 8080:8080 -p 8000:8000 \
 -v /opt/docker_house/tomcat9.0/logs:/opt/software/apache-tomcat-9.0.20/logs \
 -v /opt/docker_house/tomcat9.0/test:/opt/software/apache-tomcat-9.0.20/webapps/test \
---name cat tomcat/centos6.8_jdk1.8:9.0 
+--name cat tomcat/centos6.8_jdk1.8:9.0
 
 # 查看正在运行容器
 docker ps
@@ -647,12 +647,12 @@ firewall-cmd --reload
 
 # 查看全部打开端口
 firewall-cmd --list-all
- 
+
 # 查看远程访问
 http://docker:8080/
 
 # 本地通过挂载目录查看日志
-tail -f /opt/docker_house/tomcat9.0/logs/* 
+tail -f /opt/docker_house/tomcat9.0/logs/*
 
 # 查看动态部署
 http://docker:8080/test/hello.jsp
@@ -677,16 +677,16 @@ docker tag 2576602400f3 registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomc
 # 远程推送
 docker push registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat:9.1
 # The push refers to repository [registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat]
-# 6fee83e9a456: Pushed 
-# 7530db3afc8c: Pushed 
-# 3f6336fe2b37: Pushed 
-# 04fe25096745: Pushed 
-# c20b415d3cf3: Pushed 
-# c8aec80bb90b: Pushed 
-# 3acad8d0388c: Pushed 
-# ec66544a95eb: Pushed 
+# 6fee83e9a456: Pushed
+# 7530db3afc8c: Pushed
+# 3f6336fe2b37: Pushed
+# 04fe25096745: Pushed
+# c20b415d3cf3: Pushed
+# c8aec80bb90b: Pushed
+# 3acad8d0388c: Pushed
+# ec66544a95eb: Pushed
 # 0cc8fd615a43: Pushing [=====================================>             ]  280.7MB/376.2MB
-# ad337ac82f03: Mounted from centos7-registry/docker-test 
+# ad337ac82f03: Mounted from centos7-registry/docker-test
 9.1: digest: sha256:e16564ced2f986d431316027291a33aede23c591b218ac55cefd81d0edbf8784 size: 2408
 
 # 从远程仓库拉取
@@ -696,39 +696,244 @@ docker pull registry.cn-hangzhou.aliyuncs.com/centos68-registry/tomcat:9.1
 
 #### 详解
 ```
-# ENTRYPOINT 启动参数替换
-vim DockerFile_entrypoint
-# ----------------------------------------------------
-FROM centos:6.8
+# 拷贝文件，只拷贝，无解压效果 (默认使用相对路径)
+## 从宿主机拷贝到镜像
+COPY a b /c
+## 通配拷贝
+COPY a*.txt b?.txt /c
+## 拷贝并修改属主数组
+COPY --chown=user_x:group_x x.txt /c
 
-RUN yum install -y curl 
+# 拷贝解压文件（默认使用相对路径，不创建缓存，构建镜像慢）
+## 宿主机压缩文件拷贝解压到容器指定目录
+ADD 1.tar.gz /a
+## 拷贝解压，并修改属主，数组
+ADD --chown=user_x:group_x 1.tar.gz /a
 
+# 容器启动命令(定义容器默认启动方式，可被覆盖，但不能动态修改参数，可以写多个，但只有最后一个生效)
+## shell 风格
+CMD catalina.sh run
+## exec 风格
+CMD ["sh","-c","catalina.sh","run"]
+
+## 启动容器，并执行默认命令 catalina.sh run
+docker run -it image_id
+## 启动容器，覆盖默认命令，执行sh -c catalina.sh start
+docker run -it image_id sh -c catalina.sh start
+
+# 容器入口点（可以写多个，但只有最后一个生效）
+## shell 风格
+ENTRYPOINT curl -s ifconfig.me
+## exec 风格
 ENTRYPOINT ["curl","-s","ifconfig.me"]
 
-CMD ["curl","-s","http://www.baidu.com"]
+## 启动容器，执行默认命令(curl -s ifconfig.me)
+docker run -it images_id
+## 启动容器，修改默认命令参数 (curl -i ifconfig.me)
+docker run -it image_id -i
+
+# 环境变量(构建和运行过程都有效)
+## 单个
+ENV k v
+## 多个
+ENV k1=v1 k2=v2
+## 支持环境展开的指令： ADD COPY ENV EXPOSE LABEL USER WORKDIR VOLUMN STOPSIGNAL ONBUILD
+
+# 构建参数(只在构建过程有效) docker build .. --build-arg k=v 可以覆盖
+## 单个
+ARG k v
+## 多个
+ARG k1=v1 k2=v2
+
+# 定义匿名卷（容器运行自动挂载匿名卷，往dir写入的数据不会记入容器存储层，从而保证容器存储层无状态化）
+## 单个
+VOLUME dir
+## 多个
+VOLUME ["dir1","dir2"]
+
+## 挂载外部数据卷保存写操作数据(容器内创建数据卷/dir,并与宿主机目录host_dir建立映射关系)
+docker run -d -v host_dir:/dir
+
+# 声明端口
+## 方便理解容器公开端口，执行 docker run -P image_id 时，会自动映射 EXPOSE 端口，但并不主动与宿主机端口进行映射
+EXPOSE 8080 8000
+
+# 指定工作路径
+## 切换到容器指定目录(不存在先创建)
+WORKDIR /a
+## DockerFile 中每执行一步RUN指令，其实质都创建了一个新容器，不同容器上下文环境发生变化，通过 WORKDIR dir 切换工作目录（分层构建）
+RUN cd  /a
+RUN echo 'hello' > 1.txt
+RUN echo `ls /a/1.txt`  <<< 不存在保存
+
+# 指定当前用户
+## 当前层之后层，RUN CMD EMTRYPOINT 以指定用户身份运行
+RUN groupadd -r redis && useradd -r -g redis redis
+USER redis
+CMD ["redis-server"]
+
+## 以root身份执行就脚本，执行期间改变身份
+RUN groupadd -r redis && useradd -r -g redis redis
+RUN wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64" \
+ && chmod +x /usr/local/bin/gosu \
+ && gosu nobody true
+CMD ["exec","gosu","redis","redis-server"]
+
+vim DockerFile_redis
+# ----------------------------------------------------
+# redis:latest
+FROM redis:latest
+
+MAINTAINER xxx<xx@xx.com>
+
+RUN apt-get update && apt-get install -y wget
+
+RUN groupadd -r tom && useradd -r -g tom tom
+
+# 以 tom用户身份运行
+RUN wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64" \
+    && chmod +x /usr/local/bin/gosu \
+    && gosu nobody true
+
+CMD gosu tom redis-server
 # ----------------------------------------------------
 
-docker build -f DockerFile_entrypoint -t curl_test/centos6.8:1.0 .
+# 健康监听
+## 检查容器的健康状态
+HEALTHCHECK CMD ..
+## 屏蔽 FROM 基础镜像健康指令
+HEALTHCHECK NONE ...
 
-# 等效于执行 CMD ["curl","-s","http://www.baidu.com"],即 curl -s http://www.baidu.com
-docker run -t curl_test/centos6.8:1.0 
-# 202.66.35.243
+eg: vim DockerFile_health
+# ----------------------------------------------------
+# 测试状态监测
+FROM nginx:latest
 
-# 等效于执行 ENTRYPOINT ["curl","-s","ifconfig.me"],即 curl -i ifconfig.me
-docker run -t curl_test/centos6.8:1.0 -i
-# HTTP/1.1 200 OK
-# Date: Wed, 12 Jun 2019 09:58:00 GMT
-# Content-Type: text/plain; charset=utf-8
-# Content-Length: 13
-# Access-Control-Allow-Origin: *
-# X-Frame-Options: DENY
-# Via: 1.1 google
+MAINTAINER xxx<xxx@xx.com>
+
+RUN cp /usr/share/nginx/html/index.html /usr/share/nginx/html/index1.html
+
+# rm -rf /var/lib/apt/lists/*  减少最终镜像大小
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# 频率 5s, 超时3s 连续3次失败，则状态翻转为 unhealthy, 启动状态 start,正常状态 healthy
+# 健康检查 (成功0，失败1，保留2)， -f 失败，-s 静默(前面curl执行失败，后面就安全退出)
+HEALTHCHECK --interval=5s --timeout=3s --retries=3\
+  CMD curl -fs http://localhost/index1.html || exit 1
+# ----------------------------------------------------
+
+docker build -f DockerFile_health -t nginx/ubunt:1.0 .
+
+docker run -it -d -p 8080:80 --name ngx nginx/ubunt:1.0
+
+docker ps
+# CONTAINER ID        IMAGE                     COMMAND                  CREATED             STATUS                    PORTS                  NAMES
+# cea3559a56a0        health_check/ubuntu:1.0   "nginx -g 'daemon of…"   3 seconds ago       Up 2 seconds (health: starting)   0.0.0.0:8080->80/tcp   ngx
+
+docker ps
+# CONTAINER ID        IMAGE                     COMMAND                  CREATED             STATUS                    PORTS                  NAMES
+# cea3559a56a0        health_check/ubuntu:1.0   "nginx -g 'daemon of…"   10 minutes ago      Up 10 minutes (healthy)   0.0.0.0:8080->80/tcp   ngx
+
+# 访问
+http://docker:8080/
+http://docker:8080/index1.html
+
+docker exec -it ngx bash
+# root@cea3559a56a0:/# mv /usr/share/nginx/html/index1.html /usr/share/nginx/html/index2.html
+
+docker ps
+# CONTAINER ID        IMAGE                     COMMAND                  CREATED              STATUS                          PORTS                  NAMES
+# cea3559a56a0        health_check/ubuntu:1.0   "nginx -g 'daemon of…"   About a minute ago   Up About a minute (unhealthy)   0.0.0.0:8080->80/tcp   ngx
+
+访问
+http://localhost:8080/index1.html
+http://localhost:8080/index2.html
+
+# 健康页信息都将被保存在健康状态
+docker inspect --format '{{json .State.Health}}' ngx | python -m json.tool
+{
+    "FailingStreak": 374,
+    "Log": [
+        {
+            "End": "2019-06-10T15:20:48.0952399+08:00",
+            "ExitCode": 1,
+            "Output": "",
+            "Start": "2019-06-10T15:20:47.916230864+08:00"
+        },
+        {
+            "End": "2019-06-10T15:20:53.263652164+08:00",
+            "ExitCode": 1,
+            "Output": "",
+            "Start": "2019-06-10T15:20:53.119013267+08:00"
+        },
+        {
+            "End": "2019-06-10T15:20:58.665802071+08:00",
+            "ExitCode": 1,
+            "Output": "",
+            "Start": "2019-06-10T15:20:58.273241245+08:00"
+        },
+        {
+            "End": "2019-06-10T15:21:03.849455523+08:00",
+            "ExitCode": 1,
+            "Output": "",
+            "Start": "2019-06-10T15:21:03.684267554+08:00"
+        },
+        {
+            "End": "2019-06-10T15:21:09.023452357+08:00",
+            "ExitCode": 1,
+            "Output": "",
+            "Start": "2019-06-10T15:21:08.861176839+08:00"
+        }
+    ],
+    "Status": "unhealthy"
+}
+
+# 触发构建指令
+## 基础镜像中ONBUILD指令，会在子镜像构建时被触发，由此避免子镜像重复声明
+vim DockerFile_centos68_base
+# ----------------------------------------------------
+#
+FROM centos:6.8
+
+MAINTAINER xx<xx@xx.com>
+
+ONBUILD RUN yum update && yum install -y curl
+# ----------------------------------------------------
+
+docker build -f DockerFile_centos68_base -t curl/centos6.8:1.0 .
+
+# Sending build context to Docker daemon  196.4MB
+# Step 1/3 : FROM centos:6.8
+#  ---> 82f3b5f3c58f
+# Step 2/3 : MAINTAINER xx<xx@xx.com>
+#  ---> Using cache
+#  ---> 4ca10c4bfcbe
+# Step 3/3 : ONBUILD RUN yum update && yum install -y curl
+#  ---> Running in 8813de0ae4b6
+# Removing intermediate container 8813de0ae4b6
+#  ---> f428edeb759f
+# Successfully built f428edeb759f
+# Successfully tagged curl/centos6.8:1.0
+
+vim DockerFile_curl
+# ----------------------------------------------------
+FROM  curl/centos6.8:1.0
+
+CMD ["curl","-s","ifconfig.me"]
+# ----------------------------------------------------
+
+docker build -f DockerFile_curl -t curl/centos6.8:2.0 .
+# Step 1/2 : FROM  curl/centos6.8:1.0
+#  Executing 1 build trigger  <<<< ONBUILD
+#  ---> Running in a601b4641077
+# Loaded plugins: fastestmirror, ovl
+# Setting up Update Process
+# Resolving Dependencies
+# --> Running transaction check
+# ---> Package audit-libs.x86_64 0:2.4.5-3.el6 will be updated
+# ---> Package audit-libs.x86_64 0:2.4.5-6.el6 will be an update
+# ...
+
 
 ```
-
-
-
-
-
-
 
